@@ -1,0 +1,89 @@
+# K-Nearest Neighbors (KNN) from scratch + visualization
+# Author: Your Name
+
+import numpy as np
+import matplotlib.pyplot as plt
+from collections import Counter
+
+class KNN:
+    def __init__(self, k=3):
+        self.k = k
+
+    def fit(self, X, y):
+        self.X_train = X
+        self.y_train = y
+
+    def predict(self, X):
+        return np.array([self._predict(x) for x in X])
+
+    def _predict(self, x):
+        # Compute distances
+        distances = [self._euclidean_distance(x, x_train) for x_train in self.X_train]
+
+        # Get k nearest samples
+        k_indices = np.argsort(distances)[:self.k]
+
+        k_nearest_labels = [self.y_train[i] for i in k_indices]
+
+        # Majority vote
+        return Counter(k_nearest_labels).most_common(1)[0][0]
+
+    def _euclidean_distance(self, x1, x2):
+        return np.sqrt(np.sum((x1 - x2) ** 2))
+
+
+# =========================
+# 🔹 Sample Dataset
+# =========================
+X = np.array([
+    [2, 3],
+    [3, 4],
+    [1, 1],
+    [2, 1],
+    [6, 7],
+    [7, 8],
+    [8, 9],
+    [5, 6]
+])
+
+y = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+
+
+# =========================
+# 🔹 Train Model
+# =========================
+model = KNN(k=3)
+model.fit(X, y)
+
+predictions = model.predict(X)
+
+print("Predictions:", predictions)
+print("Actual:", y)
+
+
+# =========================
+# 🔹 Visualization
+# =========================
+def plot_decision_boundary(X, y, model):
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                         np.arange(y_min, y_max, 0.1))
+
+    Z = np.array([model.predict([[i, j]])[0] for i, j in zip(xx.ravel(), yy.ravel())])
+    Z = Z.reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, alpha=0.5)
+
+    for idx, point in enumerate(X):
+        if y[idx] == 0:
+            plt.scatter(point[0], point[1], marker='o')
+        else:
+            plt.scatter(point[0], point[1], marker='x')
+
+    plt.title("KNN Decision Boundary")
+    plt.show()
+
+
+plot_decision_boundary(X, y, model)
